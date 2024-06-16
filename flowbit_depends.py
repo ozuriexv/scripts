@@ -1,5 +1,6 @@
 import re
 import os
+import json
 
 
 # dir containing all .rules files you wish to enable
@@ -14,7 +15,7 @@ def find_disabled_rules(rulepath):
     return files
 
 
-def search_flowbits_in_rulesets(rulepath, rules, enabled_flowbits):
+def search_flowbits_in_rulesets(rulepath, rules, enabled_flowbits, state):
     for file in rules:
         print(f"Opening rules file -> {rulepath}{file}")
             
@@ -27,10 +28,22 @@ def search_flowbits_in_rulesets(rulepath, rules, enabled_flowbits):
                     sid = re.search(r"sid:(\d{7});", rule).group(1)
                     result_dict["Dependency"].append(sid)
 
-    with open("flowbit_depends.log", "a") as f:
-        for entry in enabled_flowbits:
-            print(entry)
-            f.write(str(f"{entry}\n"))
+    for entry in enabled_flowbits:
+        print(entry)
+    
+    try:
+        if state == 1:
+            with open("enabled_flowbit_depends.json", "w") as f:
+                f.write(json.dumps(enabled_flowbits))
+                print("JSON of enabled flowbits and their dependencies saved.")
+                
+        if state == 0:
+            with open("disabled_flowbit_depends.json", "w") as f:
+                f.write(json.dumps(enabled_flowbits))
+                print("JSON of disabled flowbits and their dependencies saved.")
+                
+    except Exception as e:
+        print("Something failed when saving the JSON -> {e}")
                
     return enabled_flowbits
 
@@ -41,7 +54,6 @@ def find_flowbits(rulepath, rules):
     re_flowbit_gate = re.compile(r"^#?alert.+flowbits:isset,([^;]+);")
     re_flowbit_precise = re.compile(r"flowbits:isset,([^;]+);")
     
-    # list of dicts
     results = []
     
     for file in rules:
@@ -82,13 +94,12 @@ def main(enabled_rulepath, disabled_rulepath):
     # iterates the list of .rules files and builds a list of dicts if an 'isset' flowbit is found
     enabled_flowbits = find_flowbits(enabled_rulepath, enabled_rules)
     # search each 'isset' flowbit found previously in all enabled rules files
-    enabled_flowbits = search_flowbits_in_rulesets(enabled_rulepath, enabled_rules, enabled_flowbits)
+    enabled_flowbits = search_flowbits_in_rulesets(enabled_rulepath, enabled_rules, enabled_flowbits, state=1)
     # search each 'isset' flowbit found previously in all disabled rules files
-    enabled_flowbits = search_flowbits_in_rulesets(disabled_rulepath, disabled_rules, enabled_flowbits)
+    enabled_flowbits = search_flowbits_in_rulesets(disabled_rulepath, disabled_rules, enabled_flowbits, state=0)
 
 
 if __name__ == '__main__':
-    print("This script requires your rules to be separated into 'enabled' and 'disabled' directories.  Alternatively you can just hack away at this script and make it your own.")
     enabled_rulepath = input("Enter the filepath for your enabled rules: ")
     disabled_rulepath = input("Enter the filepath for your enabled rules: ")
     
