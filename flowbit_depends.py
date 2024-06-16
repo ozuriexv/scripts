@@ -27,8 +27,10 @@ def search_flowbits_in_rulesets(rulepath, rules, enabled_flowbits):
                     sid = re.search(r"sid:(\d{7});", rule).group(1)
                     result_dict["Dependency"].append(sid)
 
-    for entry in enabled_flowbits:
-        print(entry)
+    with open("flowbit_depends.log", "a") as f:
+        for entry in enabled_flowbits:
+            print(entry)
+            f.write(str(f"{entry}\n"))
                
     return enabled_flowbits
 
