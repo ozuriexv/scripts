@@ -86,6 +86,7 @@ def main(enabled_rulepath, disabled_rulepath):
 
 
 if __name__ == '__main__':
+    print("This script requires your rules to be separated into 'enabled' and 'disabled' directories.  Alternatively you can just hack away at this script and make it your own.")
     enabled_rulepath = input("Enter the filepath for your enabled rules: ")
     disabled_rulepath = input("Enter the filepath for your enabled rules: ")
     
